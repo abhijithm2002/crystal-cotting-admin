@@ -14,7 +14,16 @@ export const uploadMedia = (fileOrFiles, category, onUploadProgress) => {
   });
 };
 
-export const getMediaList = (params) => api.get('/api/media', { params });
+export const getMediaList = async (params = {}) => {
+  const response = await api.get('/api/media', { params: { ...params, limit: 100 } });
+  if (params.page) return response;
+  const items = [...response.data];
+  for (let page = 2; page <= (response.pagination?.totalPages || 1); page += 1) {
+    const next = await api.get('/api/media', { params: { ...params, limit: 100, page } });
+    items.push(...next.data);
+  }
+  return { ...response, data: items };
+};
 export const updateMedia = (id, data) => api.put(`/api/media/${id}`, data);
 export const replaceMedia = (id, file) => {
   const formData = new FormData();

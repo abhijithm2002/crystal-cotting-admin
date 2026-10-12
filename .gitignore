@@ -4,3 +4,10 @@ dist
 .env.local
 *.log
 .DS_Store
+
+# Environment and test artifacts
+.env.*
+!.env.example
+!.env.production
+test-results/
+playwright-report/

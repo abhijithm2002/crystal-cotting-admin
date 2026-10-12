@@ -88,7 +88,7 @@ export default function SiteSettings() {
       await updateSettings(data);
       setSaveMsg('Site settings saved.');
     } catch (_err) {
-      setSaveMsg('error:Could not save site settings.');
+      setSaveMsg(`error:${_err?.response?.data?.message || 'Could not save site settings.'}`);
     } finally {
       setSaving(false);
     }

@@ -28,7 +28,7 @@ import ConfirmDialog from '../components/ConfirmDialog.jsx';
 import { formatDateTime } from '../utils/formatters.js';
 import {
   getContactMessages,
-  exportContactMessagesUrl,
+  exportContactMessages,
   markMessageRead,
   deleteMessage,
 } from '../services/contactApi.js';
@@ -58,7 +58,7 @@ export default function ContactMessages() {
       const data = res.data || {};
       const list = data.items || data.messages || data || [];
       setRows((Array.isArray(list) ? list : []).map((m) => ({ id: m._id || m.id, ...m })));
-      setRowCount(data.total ?? (Array.isArray(list) ? list.length : 0));
+      setRowCount(res.pagination?.total ?? data.total ?? (Array.isArray(list) ? list.length : 0));
     } catch (_err) {
       setError('Could not load contact messages.');
     } finally {
@@ -149,10 +149,17 @@ export default function ContactMessages() {
           <Button
             variant="outlined"
             startIcon={<DownloadIcon />}
-            component="a"
-            href={exportContactMessagesUrl()}
-            target="_blank"
-            rel="noopener"
+            onClick={async () => {
+              try {
+                const res = await exportContactMessages();
+                const url = URL.createObjectURL(res.data);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = 'contact-messages.csv';
+                link.click();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+              } catch { setError('Could not export contact messages.'); }
+            }}
           >
             Export CSV
           </Button>

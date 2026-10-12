@@ -101,7 +101,7 @@ export default function Homepage() {
       await updateHomepage(data);
       setSaveMsg('Homepage content saved.');
     } catch (_err) {
-      setSaveMsg('error:Could not save homepage content.');
+      setSaveMsg(`error:${_err?.response?.data?.message || 'Could not save homepage content.'}`);
     } finally {
       setSaving(false);
     }

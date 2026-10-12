@@ -59,7 +59,7 @@ export default function About() {
       await updateAbout(data);
       setSaveMsg('About page saved.');
     } catch (_err) {
-      setSaveMsg('error:Could not save about page.');
+      setSaveMsg(`error:${_err?.response?.data?.message || 'Could not save about page.'}`);
     } finally {
       setSaving(false);
     }

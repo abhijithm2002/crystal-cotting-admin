@@ -1,18 +1,23 @@
 import axios from 'axios';
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+const baseURL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').trim().replace(/\/+$/, '').replace(/\/api$/, '');
 
 const api = axios.create({
   baseURL,
   withCredentials: true,
+  timeout: 60000,
 });
 
-// In-memory token as a fallback header in case the httpOnly cookie isn't
-// available cross-origin in some dev setups. The cookie remains the primary
-// auth mechanism; this is never persisted to storage.
+// Tab-scoped bearer fallback for browsers blocking cross-site cookies.
+// Cleared on logout or an expired session; survives a page refresh.
 let inMemoryToken = null;
+try { inMemoryToken = sessionStorage.getItem('adminToken'); } catch { /* Storage unavailable. */ }
 export const setAuthToken = (token) => {
   inMemoryToken = token || null;
+  try {
+    if (inMemoryToken) sessionStorage.setItem('adminToken', inMemoryToken);
+    else sessionStorage.removeItem('adminToken');
+  } catch { /* In-memory authentication still works. */ }
 };
 
 api.interceptors.request.use((config) => {
@@ -24,7 +29,14 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    const envelope = response.data;
+    if (envelope && typeof envelope === 'object' && envelope.success === true && 'data' in envelope) {
+      response.data = envelope.data;
+      response.pagination = envelope.pagination;
+    }
+    return response;
+  },
   (error) => {
     const status = error?.response?.status;
     if (status === 401) {
@@ -44,7 +56,7 @@ export const API_BASE_URL = baseURL;
 export const resolveMediaUrl = (path) => {
   if (!path) return '';
   if (/^https?:\/\//i.test(path)) return path;
-  return `${baseURL}${path}`;
+  return `${baseURL}/${path.replace(/^\/+/, '')}`;
 };
 
 export default api;

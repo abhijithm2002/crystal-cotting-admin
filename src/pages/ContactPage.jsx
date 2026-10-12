@@ -55,7 +55,7 @@ export default function ContactPage() {
       await updateContactPage(data);
       setSaveMsg('Contact page saved.');
     } catch (_err) {
-      setSaveMsg('error:Could not save contact page.');
+      setSaveMsg(`error:${_err?.response?.data?.message || 'Could not save contact page.'}`);
     } finally {
       setSaving(false);
     }
