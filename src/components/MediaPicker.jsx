@@ -1,3 +1,4 @@
+import { normalizeMediaResponse } from '../utils/mediaResponse.js';
 import { useCallback, useEffect, useState } from 'react';
 import {
   Box,
@@ -25,12 +26,6 @@ import CloseIcon from '@mui/icons-material/Close';
 import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';
 import { getMediaList, uploadMedia } from '../services/mediaApi.js';
 import { resolveMediaUrl } from '../services/api.js';
-
-function normalizeUploadResponse(data) {
-  if (!data) return null;
-  const item = Array.isArray(data) ? data[0] : data.media || data.file || data;
-  return item?.url ? item : null;
-}
 
 // Reusable image field: shows a preview + "Change" button that opens a
 // dialog to either upload a new file or pick an existing Media Library item.
@@ -69,7 +64,7 @@ export default function MediaPicker({ label, value, onChange, category }) {
     setError('');
     try {
       const res = await uploadMedia(file, category);
-      const media = normalizeUploadResponse(res.data);
+      const media = normalizeMediaResponse(res.data)[0];
       if (media) {
         onChange(media.url);
         setOpen(false);
@@ -77,9 +72,10 @@ export default function MediaPicker({ label, value, onChange, category }) {
         setError('Upload succeeded but no file URL was returned.');
       }
     } catch (_err) {
-      setError('Upload failed. Check the backend connection and file type/size.');
+      setError(_err?.response?.data?.message || 'Upload failed. Check the connection, file type and size.');
     } finally {
       setUploading(false);
+      e.target.value = '';
     }
   };
 

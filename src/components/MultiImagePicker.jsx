@@ -1,3 +1,4 @@
+import { normalizeMediaResponse } from '../utils/mediaResponse.js';
 import { useCallback, useEffect, useState } from 'react';
 import {
   Box,
@@ -25,14 +26,6 @@ import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternate
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { getMediaList, uploadMedia } from '../services/mediaApi.js';
 import { resolveMediaUrl } from '../services/api.js';
-
-function normalizeUploaded(data) {
-  if (!data) return [];
-  if (Array.isArray(data)) return data.filter((m) => m?.url);
-  if (Array.isArray(data.media)) return data.media.filter((m) => m?.url);
-  if (data.url) return [data];
-  return [];
-}
 
 // Manages an array-of-image-URL field (e.g. Service.gallery, Portfolio.images).
 export default function MultiImagePicker({ label, value = [], onChange, category }) {
@@ -70,16 +63,17 @@ export default function MultiImagePicker({ label, value = [], onChange, category
     setError('');
     try {
       const res = await uploadMedia(files.length > 1 ? files : files[0], category);
-      const media = normalizeUploaded(res.data);
+      const media = normalizeMediaResponse(res.data);
       if (media.length) {
         onChange([...value, ...media.map((m) => m.url)]);
       } else {
         setError('Upload succeeded but no file URL was returned.');
       }
     } catch (_err) {
-      setError('Upload failed. Check the backend connection and file type/size.');
+      setError(_err?.response?.data?.message || 'Upload failed. Check the connection, file type and size.');
     } finally {
       setUploading(false);
+      e.target.value = '';
     }
   };
 
