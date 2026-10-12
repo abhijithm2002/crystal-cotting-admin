@@ -41,7 +41,7 @@ export default function MultiImagePicker({ label, value = [], onChange, category
     setLoading(true);
     setError('');
     try {
-      const res = await getMediaList({ search: search || undefined, category: category || undefined });
+      const res = await getMediaList({ search: search || undefined,  });
       const list = res.data?.items || res.data?.media || res.data || [];
       setItems(Array.isArray(list) ? list : []);
     } catch (_err) {
@@ -49,7 +49,7 @@ export default function MultiImagePicker({ label, value = [], onChange, category
     } finally {
       setLoading(false);
     }
-  }, [search, category]);
+  }, [search]);
 
   useEffect(() => {
     if (open && tab === 1) loadLibrary();
@@ -70,7 +70,7 @@ export default function MultiImagePicker({ label, value = [], onChange, category
         setError('Upload succeeded but no file URL was returned.');
       }
     } catch (_err) {
-      setError(_err?.response?.data?.message || 'Upload failed. Check the connection, file type and size.');
+      setError(_err?.response?.data?.message || _err.message || 'Upload failed. Check the connection, file type and size.');
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -141,7 +141,7 @@ export default function MultiImagePicker({ label, value = [], onChange, category
         </DialogTitle>
         <Tabs value={tab} onChange={(_e, v) => setTab(v)} sx={{ px: 3 }}>
           <Tab label="Upload new" />
-          <Tab label="Media Library" />
+          <Tab label="Saved images" />
         </Tabs>
         <DialogContent dividers sx={{ minHeight: 360 }}>
           {tab === 0 && (

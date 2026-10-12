@@ -37,13 +37,13 @@ const NAV_ITEMS = [
   { label: 'About', path: '/about', icon: InfoOutlinedIcon },
   { label: 'Services', path: '/services', icon: DesignServicesOutlinedIcon },
   { label: 'Gallery', path: '/gallery', icon: CollectionsOutlinedIcon },
-  { label: 'Portfolio', path: '/portfolio', icon: PhotoLibraryOutlinedIcon },
-  { label: 'Testimonials', path: '/testimonials', icon: FormatQuoteOutlinedIcon },
+  { label: 'Projects', path: '/portfolio', icon: PhotoLibraryOutlinedIcon },
+  { label: 'Customer reviews', path: '/testimonials', icon: FormatQuoteOutlinedIcon },
   { label: 'Contact Page', path: '/contact-page', icon: ContactPageOutlinedIcon },
   { label: 'Contact Messages', path: '/contact-messages', icon: MarkEmailUnreadOutlinedIcon },
   { label: 'FAQ', path: '/faq', icon: QuizOutlinedIcon },
-  { label: 'Site Settings', path: '/settings', icon: SettingsOutlinedIcon },
-  { label: 'Media Library', path: '/media-library', icon: PermMediaOutlinedIcon },
+  { label: 'Logo & site settings', path: '/settings', icon: SettingsOutlinedIcon },
+  { label: 'Saved images', path: '/media-library', icon: PermMediaOutlinedIcon },
   { label: 'Change Password', path: '/change-password', icon: LockResetOutlinedIcon },
 ];
 

@@ -1,6 +1,7 @@
+import PublishBar from '../components/PublishBar.jsx';
+import useContentEditor from '../hooks/useContentEditor.js';
 import { useCallback, useEffect, useState } from 'react';
-import { Box, Paper, Grid, TextField, Divider, Alert, Button, Stack, Typography } from '@mui/material';
-import SaveIcon from '@mui/icons-material/Save';
+import { Box, Paper, Grid, TextField, Divider, Stack, Typography } from '@mui/material';
 import PageHeader from '../components/PageHeader.jsx';
 import LoadingState from '../components/LoadingState.jsx';
 import ErrorState from '../components/ErrorState.jsx';
@@ -53,7 +54,7 @@ function ColorField({ label, value, onChange }) {
 }
 
 export default function SiteSettings() {
-  const [data, setData] = useState(EMPTY);
+  const { data, setData, resetData, markSaved, dirty } = useContentEditor(EMPTY);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -64,7 +65,7 @@ export default function SiteSettings() {
     setError('');
     try {
       const res = await getSettings();
-      setData({
+      resetData({
         ...EMPTY,
         ...res.data,
         themeColors: { ...EMPTY.themeColors, ...res.data?.themeColors },
@@ -75,7 +76,7 @@ export default function SiteSettings() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [resetData]);
 
   useEffect(() => {
     load();
@@ -86,6 +87,7 @@ export default function SiteSettings() {
     setSaveMsg('');
     try {
       await updateSettings(data);
+      markSaved(data);
       setSaveMsg('Site settings saved.');
     } catch (_err) {
       setSaveMsg(`error:${_err?.response?.data?.message || 'Could not save site settings.'}`);
@@ -102,17 +104,8 @@ export default function SiteSettings() {
       <PageHeader
         title="Site Settings"
         subtitle="Global site identity, theme colors and SEO defaults"
-        action={
-          <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving…' : 'Save changes'}
-          </Button>
-        }
       />
-      {saveMsg && (
-        <Alert severity={saveMsg.startsWith('error:') ? 'error' : 'success'} sx={{ mb: 2 }}>
-          {saveMsg.replace('error:', '')}
-        </Alert>
-      )}
+      <PublishBar dirty={dirty} saving={saving} onSave={handleSave} message={saveMsg} />
 
       <Paper sx={{ p: 3 }}>
         <Stack spacing={3}>

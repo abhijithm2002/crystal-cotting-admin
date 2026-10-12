@@ -87,7 +87,7 @@ export default function MediaLibrary() {
       await uploadMedia(files.length > 1 ? files : files[0], category || undefined);
       load();
     } catch (_err) {
-      setError('Upload failed. Check file type/size and backend connection.');
+      setError(_err.message || 'Upload failed. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -131,7 +131,7 @@ export default function MediaLibrary() {
       await replaceMedia(replaceForId, file);
       load();
     } catch (_err) {
-      setError('Could not replace this file.');
+      setError(_err.message || 'Could not replace this file.');
     } finally {
       setReplaceForId(null);
       if (replaceInputRef.current) replaceInputRef.current.value = '';

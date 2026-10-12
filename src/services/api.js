@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { parseApiResponse } from '../utils/apiResponse.js';
 
 const baseURL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000').trim().replace(/\/+$/, '').replace(/\/api$/, '');
 
@@ -6,6 +7,7 @@ const api = axios.create({
   baseURL,
   withCredentials: true,
   timeout: 60000,
+  responseType: 'json',
 });
 
 // Tab-scoped bearer fallback for browsers blocking cross-site cookies.
@@ -30,7 +32,9 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (response) => {
-    const envelope = response.data;
+    if (response.config.responseType === 'blob') return response;
+    const envelope = parseApiResponse(response.data);
+    response.data = envelope;
     if (envelope && typeof envelope === 'object' && envelope.success === true && 'data' in envelope) {
       response.data = envelope.data;
       response.pagination = envelope.pagination;
@@ -52,6 +56,7 @@ api.interceptors.response.use(
   }
 );
 
+export const getAuthToken = () => inMemoryToken;
 export const API_BASE_URL = baseURL;
 export const resolveMediaUrl = (path) => {
   if (!path) return '';

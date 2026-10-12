@@ -1,6 +1,7 @@
+import PublishBar from '../components/PublishBar.jsx';
+import useContentEditor from '../hooks/useContentEditor.js';
 import { useCallback, useEffect, useState } from 'react';
-import { Box, Paper, Tabs, Tab, Grid, TextField, Divider, Alert, Button } from '@mui/material';
-import SaveIcon from '@mui/icons-material/Save';
+import { Box, Paper, Tabs, Tab, Grid, TextField, Divider, } from '@mui/material';
 import PageHeader from '../components/PageHeader.jsx';
 import LoadingState from '../components/LoadingState.jsx';
 import ErrorState from '../components/ErrorState.jsx';
@@ -23,7 +24,7 @@ const EMPTY = {
 };
 
 export default function About() {
-  const [data, setData] = useState(EMPTY);
+  const { data, setData, resetData, markSaved, dirty } = useContentEditor(EMPTY);
   const [tab, setTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -35,7 +36,7 @@ export default function About() {
     setError('');
     try {
       const res = await getAbout();
-      setData({
+      resetData({
         ...EMPTY,
         ...res.data,
         experienceCaption: { ...EMPTY.experienceCaption, ...res.data?.experienceCaption },
@@ -46,7 +47,7 @@ export default function About() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [resetData]);
 
   useEffect(() => {
     load();
@@ -57,6 +58,7 @@ export default function About() {
     setSaveMsg('');
     try {
       await updateAbout(data);
+      markSaved(data);
       setSaveMsg('About page saved.');
     } catch (_err) {
       setSaveMsg(`error:${_err?.response?.data?.message || 'Could not save about page.'}`);
@@ -73,17 +75,8 @@ export default function About() {
       <PageHeader
         title="About"
         subtitle="Manage the About page content"
-        action={
-          <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving…' : 'Save changes'}
-          </Button>
-        }
       />
-      {saveMsg && (
-        <Alert severity={saveMsg.startsWith('error:') ? 'error' : 'success'} sx={{ mb: 2 }}>
-          {saveMsg.replace('error:', '')}
-        </Alert>
-      )}
+      <PublishBar dirty={dirty} saving={saving} onSave={handleSave} message={saveMsg} />
 
       <Paper sx={{ mb: 2 }}>
         <Tabs value={tab} onChange={(_e, v) => setTab(v)} variant="scrollable" scrollButtons="auto">
@@ -129,7 +122,7 @@ export default function About() {
             <Grid item xs={12} sm={4}>
               <TextField
                 fullWidth
-                label="Eyebrow"
+                label="Small heading above title"
                 value={data.intro.eyebrow}
                 onChange={(e) => setData((d) => ({ ...d, intro: { ...d.intro, eyebrow: e.target.value } }))}
               />

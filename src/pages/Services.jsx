@@ -188,7 +188,7 @@ export default function Services() {
                       {item.title}
                     </Typography>
                     <Chip size="small" label={item.category} variant="outlined" />
-                    {item.isFeatured && <Chip size="small" color="secondary" label="Featured" />}
+                    {item.isFeatured && <Chip size="small" color="secondary" label="Visible on website" />}
                   </Stack>
                   <Typography variant="body2" color="text.secondary" noWrap>
                     {item.description}
@@ -196,7 +196,7 @@ export default function Services() {
                 </Box>
                 <FormControlLabel
                   control={<Switch checked={!!item.isFeatured} onChange={() => handleToggleFeatured(item)} />}
-                  label="Featured"
+                  label="Show on website"
                   labelPlacement="start"
                   sx={{ mr: 1 }}
                 />
@@ -268,7 +268,7 @@ export default function Services() {
                 control={
                   <Switch checked={!!form.isFeatured} onChange={(e) => setForm((f) => ({ ...f, isFeatured: e.target.checked }))} />
                 }
-                label="Featured on homepage"
+                label="Show on website"
               />
             </Grid>
           </Grid>

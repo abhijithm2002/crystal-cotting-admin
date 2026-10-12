@@ -1,3 +1,5 @@
+import PublishBar from '../components/PublishBar.jsx';
+import useContentEditor from '../hooks/useContentEditor.js';
 import { useCallback, useEffect, useState } from 'react';
 import {
   Box,
@@ -9,10 +11,8 @@ import {
   Stack,
   Typography,
   Alert,
-  Button,
   Divider,
 } from '@mui/material';
-import SaveIcon from '@mui/icons-material/Save';
 import PageHeader from '../components/PageHeader.jsx';
 import LoadingState from '../components/LoadingState.jsx';
 import ErrorState from '../components/ErrorState.jsx';
@@ -52,7 +52,7 @@ function IntroFields({ value, onChange, withNote }) {
   return (
     <Grid container spacing={2}>
       <Grid item xs={12} sm={4}>
-        <TextField fullWidth label="Eyebrow" value={value.eyebrow || ''} onChange={(e) => onChange({ ...value, eyebrow: e.target.value })} />
+        <TextField fullWidth label="Small heading above title" value={value.eyebrow || ''} onChange={(e) => onChange({ ...value, eyebrow: e.target.value })} />
       </Grid>
       <Grid item xs={12} sm={8}>
         <TextField fullWidth label="Title" value={value.title || ''} onChange={(e) => onChange({ ...value, title: e.target.value })} />
@@ -70,7 +70,7 @@ function IntroFields({ value, onChange, withNote }) {
 }
 
 export default function Homepage() {
-  const [data, setData] = useState(EMPTY);
+  const { data, setData, resetData, markSaved, dirty } = useContentEditor(EMPTY);
   const [tab, setTab] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -82,13 +82,13 @@ export default function Homepage() {
     setError('');
     try {
       const res = await getHomepage();
-      setData({ ...EMPTY, ...res.data, hero: { ...EMPTY.hero, ...res.data?.hero, sideCaption: { ...EMPTY.hero.sideCaption, ...res.data?.hero?.sideCaption } } });
+      resetData({ ...EMPTY, ...res.data, hero: { ...EMPTY.hero, ...res.data?.hero, sideCaption: { ...EMPTY.hero.sideCaption, ...res.data?.hero?.sideCaption } } });
     } catch (_err) {
       setError('Could not load homepage content.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [resetData]);
 
   useEffect(() => {
     load();
@@ -99,6 +99,7 @@ export default function Homepage() {
     setSaveMsg('');
     try {
       await updateHomepage(data);
+      markSaved(data);
       setSaveMsg('Homepage content saved.');
     } catch (_err) {
       setSaveMsg(`error:${_err?.response?.data?.message || 'Could not save homepage content.'}`);
@@ -117,32 +118,23 @@ export default function Homepage() {
       <PageHeader
         title="Homepage"
         subtitle="Manage the homepage hero, stats, sections and footer content"
-        action={
-          <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving…' : 'Save changes'}
-          </Button>
-        }
       />
-      {saveMsg && (
-        <Alert severity={saveMsg.startsWith('error:') ? 'error' : 'success'} sx={{ mb: 2 }}>
-          {saveMsg.replace('error:', '')}
-        </Alert>
-      )}
+      <PublishBar dirty={dirty} saving={saving} onSave={handleSave} message={saveMsg} />
       <Alert severity="info" sx={{ mb: 2 }}>
-        Featured services, portfolio projects, and testimonials shown on the homepage are controlled by the
-        <strong> isFeatured</strong> switch on each item&apos;s own CRUD page (Services, Portfolio, Testimonials) — not here.
+        Upload or choose your images below, edit the text, then click <strong>Publish changes</strong>.
+        To show or hide services, projects and customer reviews, use “Show on website” on their pages.
       </Alert>
 
       <Paper sx={{ mb: 2 }}>
         <Tabs value={tab} onChange={(_e, v) => setTab(v)} variant="scrollable" scrollButtons="auto">
-          <Tab label="Hero" />
-          <Tab label="Hero Stats" />
-          <Tab label="Stats Strip" />
-          <Tab label="Services Intro" />
-          <Tab label="Why Choose" />
-          <Tab label="Premium Promise" />
-          <Tab label="Projects & Before/After" />
-          <Tab label="Testimonials Intro" />
+          <Tab label="Main banner" />
+          <Tab label="Banner highlights" />
+          <Tab label="Company numbers" />
+          <Tab label="Services heading" />
+          <Tab label="Why choose us" />
+          <Tab label="Quality promise" />
+          <Tab label="Projects & transformations" />
+          <Tab label="Customer reviews heading" />
           <Tab label="Footer" />
         </Tabs>
       </Paper>
@@ -157,7 +149,7 @@ export default function Homepage() {
               <MediaPicker label="Side image" value={data.hero.sideImage} onChange={(v) => setHero({ sideImage: v })} category="homepage" />
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField fullWidth label="Eyebrow" value={data.hero.eyebrow} onChange={(e) => setHero({ eyebrow: e.target.value })} />
+              <TextField fullWidth label="Small heading above title" value={data.hero.eyebrow} onChange={(e) => setHero({ eyebrow: e.target.value })} />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField fullWidth label="Badge text" value={data.hero.badgeText} onChange={(e) => setHero({ badgeText: e.target.value })} />

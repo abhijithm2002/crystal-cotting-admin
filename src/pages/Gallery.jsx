@@ -3,7 +3,6 @@ import {
   Box,
   Paper,
   Card,
-  CardMedia,
   Typography,
   TextField,
   InputAdornment,
@@ -32,6 +31,7 @@ import { getMediaList, uploadMedia, replaceMedia, deleteMedia, reorderMedia } fr
 const GALLERY_CATEGORY = 'gallery';
 
 export default function Gallery() {
+  const [missingUrls, setMissingUrls] = useState(new Set());
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -50,6 +50,7 @@ export default function Gallery() {
     try {
       const res = await getMediaList({ search: search || undefined, category: GALLERY_CATEGORY });
       const list = res.data?.items || res.data?.media || res.data || [];
+      setMissingUrls(new Set());
       setItems(Array.isArray(list) ? list : []);
     } catch (_err) {
       setError('Could not load the gallery.');
@@ -71,7 +72,7 @@ export default function Gallery() {
       await uploadMedia(files.length > 1 ? files : files[0], GALLERY_CATEGORY);
       load();
     } catch (_err) {
-      setError('Upload failed. Check file type/size and backend connection.');
+      setError(_err.message || 'Upload failed. Please try again.');
     } finally {
       setUploading(false);
     }
@@ -84,7 +85,7 @@ export default function Gallery() {
       await replaceMedia(replaceForId, file);
       load();
     } catch (_err) {
-      setError('Could not replace this file.');
+      setError(_err.message || 'Could not replace this file.');
     } finally {
       setReplaceForId(null);
       if (replaceInputRef.current) replaceInputRef.current.value = '';
@@ -121,7 +122,7 @@ export default function Gallery() {
     <Box>
       <PageHeader
         title="Gallery"
-        subtitle="Images shown in the site gallery (Media Library, category: gallery)"
+        subtitle="Upload photos here to show them in the website gallery. Changes are published automatically."
         action={
           <Button variant="contained" component="label" startIcon={<CloudUploadIcon />} disabled={uploading}>
             {uploading ? 'Uploading…' : 'Upload'}
@@ -176,6 +177,9 @@ export default function Gallery() {
         Drag cards to reorder. The order is saved automatically and reflected on the live site.
       </Alert>
 
+      {missingUrls.size > 0 && <Alert severity="warning" sx={{ mb: 2 }}>
+        {missingUrls.size} photo(s) could not be loaded. Old files may have been lost during a server restart. Click Replace photo and choose the original file again. Missing photos are hidden on the website.
+      </Alert>}
       {items.length === 0 ? (
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography color="text.secondary">No gallery images yet. Upload some above.</Typography>
@@ -191,13 +195,13 @@ export default function Gallery() {
               <Box sx={{ position: 'absolute', top: 4, left: 4, zIndex: 1, color: '#fff', bgcolor: 'rgba(0,0,0,0.45)', borderRadius: 1 }}>
                 <DragIndicatorIcon fontSize="small" />
               </Box>
-              <CardMedia
-                component="img"
-                image={resolveMediaUrl(item.thumbnailUrl || item.url)}
-                alt=""
-                onClick={() => setPreview(item)}
-                sx={{ height: 130, objectFit: 'cover', cursor: 'zoom-in', bgcolor: 'background.default' }}
-              />
+              {missingUrls.has(item.url) ? (
+                <Box sx={{ height: 130, p: 2, display: 'grid', placeItems: 'center', bgcolor: 'warning.light' }}><Typography fontWeight={700}>Image missing</Typography></Box>
+              ) : (
+                <Box component="img" src={resolveMediaUrl(item.url)} alt={item.originalName || 'Gallery photo'} onError={() => setMissingUrls(current => new Set([...current, item.url]))} onClick={() => setPreview(item)} sx={{ height: 130, width: '100%', objectFit: 'cover', cursor: 'zoom-in' }} />
+              )}
+              <Typography variant="caption" sx={{ px: 1, display: 'block', overflowWrap: 'anywhere' }}>{item.originalName}</Typography>
+              {missingUrls.has(item.url) && <Button fullWidth onClick={() => { setReplaceForId(item._id || item.id); replaceInputRef.current?.click(); }}>Replace photo</Button>}
               <Stack direction="row" justifyContent="center" sx={{ py: 0.5 }}>
                 <Tooltip title="Replace">
                   <IconButton
@@ -221,7 +225,7 @@ export default function Gallery() {
         />
       )}
 
-      <input type="file" ref={replaceInputRef} hidden accept=".jpg,.jpeg,.png,.webp,.svg" onChange={handleReplaceFile} />
+      <input aria-label="Replacement gallery photo" type="file" ref={replaceInputRef} hidden accept=".jpg,.jpeg,.png,.webp,.svg" onChange={handleReplaceFile} />
 
       <Dialog open={!!preview} onClose={() => setPreview(null)} maxWidth="md">
         <DialogContent sx={{ position: 'relative', p: 0 }}>

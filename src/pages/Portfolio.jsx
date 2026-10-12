@@ -176,7 +176,7 @@ export default function Portfolio() {
                     <Typography variant="subtitle1" fontWeight={700} noWrap>
                       {item.title}
                     </Typography>
-                    {item.isFeatured && <Chip size="small" color="secondary" label="Featured" />}
+                    {item.isFeatured && <Chip size="small" color="secondary" label="Visible on website" />}
                   </Stack>
                   <Typography variant="body2" color="text.secondary" noWrap>
                     {item.location} • {item.category}
@@ -184,7 +184,7 @@ export default function Portfolio() {
                   <Stack direction="row" spacing={1} sx={{ mt: 1.5 }} alignItems="center" justifyContent="space-between">
                     <FormControlLabel
                       control={<Switch size="small" checked={!!item.isFeatured} onChange={() => handleToggleFeatured(item)} />}
-                      label="Featured"
+                      label="Show on website"
                     />
                     <Stack direction="row">
                       <IconButton size="small" onClick={() => openEdit(item)}>
@@ -259,7 +259,7 @@ export default function Portfolio() {
                 control={
                   <Switch checked={!!form.isFeatured} onChange={(e) => setForm((f) => ({ ...f, isFeatured: e.target.checked }))} />
                 }
-                label="Featured on homepage"
+                label="Show on website"
               />
             </Grid>
           </Grid>

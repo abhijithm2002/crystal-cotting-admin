@@ -1,6 +1,7 @@
+import PublishBar from '../components/PublishBar.jsx';
+import useContentEditor from '../hooks/useContentEditor.js';
 import { useCallback, useEffect, useState } from 'react';
-import { Box, Paper, Grid, TextField, Divider, Alert, Button, Stack } from '@mui/material';
-import SaveIcon from '@mui/icons-material/Save';
+import { Box, Paper, Grid, TextField, Divider, Stack } from '@mui/material';
 import PageHeader from '../components/PageHeader.jsx';
 import LoadingState from '../components/LoadingState.jsx';
 import ErrorState from '../components/ErrorState.jsx';
@@ -25,7 +26,7 @@ const EMPTY = {
 };
 
 export default function ContactPage() {
-  const [data, setData] = useState(EMPTY);
+  const { data, setData, resetData, markSaved, dirty } = useContentEditor(EMPTY);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -36,13 +37,13 @@ export default function ContactPage() {
     setError('');
     try {
       const res = await getContactPage();
-      setData({ ...EMPTY, ...res.data, intro: { ...EMPTY.intro, ...res.data?.intro } });
+      resetData({ ...EMPTY, ...res.data, intro: { ...EMPTY.intro, ...res.data?.intro } });
     } catch (_err) {
       setError('Could not load contact page content.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [resetData]);
 
   useEffect(() => {
     load();
@@ -53,6 +54,7 @@ export default function ContactPage() {
     setSaveMsg('');
     try {
       await updateContactPage(data);
+      markSaved(data);
       setSaveMsg('Contact page saved.');
     } catch (_err) {
       setSaveMsg(`error:${_err?.response?.data?.message || 'Could not save contact page.'}`);
@@ -69,17 +71,8 @@ export default function ContactPage() {
       <PageHeader
         title="Contact Page"
         subtitle="Manage contact details shown on the public site"
-        action={
-          <Button variant="contained" startIcon={<SaveIcon />} onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving…' : 'Save changes'}
-          </Button>
-        }
       />
-      {saveMsg && (
-        <Alert severity={saveMsg.startsWith('error:') ? 'error' : 'success'} sx={{ mb: 2 }}>
-          {saveMsg.replace('error:', '')}
-        </Alert>
-      )}
+      <PublishBar dirty={dirty} saving={saving} onSave={handleSave} message={saveMsg} />
 
       <Paper sx={{ p: 3 }}>
         <Stack spacing={3}>
@@ -92,7 +85,7 @@ export default function ContactPage() {
           <Divider />
           <Grid container spacing={2}>
             <Grid item xs={12} sm={4}>
-              <TextField fullWidth label="Eyebrow" value={data.intro.eyebrow} onChange={(e) => setData((d) => ({ ...d, intro: { ...d.intro, eyebrow: e.target.value } }))} />
+              <TextField fullWidth label="Small heading above title" value={data.intro.eyebrow} onChange={(e) => setData((d) => ({ ...d, intro: { ...d.intro, eyebrow: e.target.value } }))} />
             </Grid>
             <Grid item xs={12} sm={8}>
               <TextField fullWidth label="Title" value={data.intro.title} onChange={(e) => setData((d) => ({ ...d, intro: { ...d.intro, title: e.target.value } }))} />

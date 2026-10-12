@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Grid, Paper, Typography, Stack, Box, Chip, Divider } from '@mui/material';
+import { Link as RouterLink } from 'react-router-dom';
+import { Button, Grid, Paper, Typography, Stack, Box, Chip, Divider } from '@mui/material';
 import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';
 import CollectionsOutlinedIcon from '@mui/icons-material/CollectionsOutlined';
 import DesignServicesOutlinedIcon from '@mui/icons-material/DesignServicesOutlined';
@@ -50,6 +51,17 @@ export default function Dashboard() {
   return (
     <Box>
       <PageHeader title="Dashboard" subtitle="Overview of your site content" />
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6" fontWeight={700}>What would you like to change?</Typography>
+        <Typography color="text.secondary" sx={{ mt: 1, mb: 2 }}>Choose a task below. Edit your content, then publish it to the website.</Typography>
+        <Stack direction="row" gap={1.5} flexWrap="wrap">
+          <Button variant="contained" component={RouterLink} to="/homepage">Edit homepage</Button>
+          <Button variant="outlined" component={RouterLink} to="/gallery">Add gallery photos</Button>
+          <Button variant="outlined" component={RouterLink} to="/settings">Change logo & business name</Button>
+          <Button variant="outlined" component={RouterLink} to="/contact-page">Update contact details</Button>
+          <Button variant="outlined" component={RouterLink} to="/contact-messages">Read customer enquiries</Button>
+        </Stack>
+      </Paper>
       <Grid container spacing={2.5}>
         {cards.map((c) => (
           <Grid item xs={12} sm={6} md={4} key={c.label}>
